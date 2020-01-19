@@ -9,6 +9,7 @@ class TestMat4x4(unittest.TestCase):
     Unit test of Mat4x4
     """
     def test_vector_multiplication(self):
+        """ Testing * operator """
         vec = Vec3(1, 2, 3)
         matrix = Mat4x4()
 
