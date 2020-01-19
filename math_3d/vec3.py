@@ -6,10 +6,10 @@ class Vec3:
     Vec3 - Vector with 3 coordinates X, Y, Z.
 
     Supports all operations on a vector:
-        Addition (+)
-        Subtraction (-)
-        Dot-product (*)
-        Cross-product (//)
+        Addition (+) \n
+        Subtraction (-) \n
+        Dot-product (*) \n
+        Cross-product (//) \n
     """
     Vec3 = TypeVar("Vec3")
 
