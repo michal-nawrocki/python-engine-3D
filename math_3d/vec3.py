@@ -1,3 +1,4 @@
+from math import sqrt
 from typing import TypeVar
 
 
@@ -83,3 +84,17 @@ class Vec3:
             return True
         else:
             return False
+
+    def normalize(self) -> Vec3:
+        """
+        Normalize a vector to the unit vector
+
+        :return: None
+        """
+
+        length = sqrt(self.x * self.x + self.y * self.y + self.z * self.z)
+        self.x /= length
+        self.y /= length
+        self.z /= length
+
+        return self
