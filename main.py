@@ -30,12 +30,6 @@ if __name__ == "__main__":
 
     # Main loop
     while True:
-        """
-            tp2 = std::chrono::system_clock::now();
-            std::chrono::duration<float> elapsedTime = tp2 - tp1;
-            tp1 = tp2;
-            float fElapsedTime = elapsedTime.count();
-        """
         # Calculating time difference used for keeping stuff in sync
         time_2 = time.time()
         time_diff = time_2 - time_1
