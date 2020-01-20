@@ -1,6 +1,6 @@
-from math import sin, cos, tan, pi
+from math import sin, cos, tan, pi, sqrt
 from tkinter import Canvas, mainloop
-from copy import deepcopy
+
 from math_3d.mat4x4 import Mat4x4
 from math_3d.vec3 import Vec3
 from pipeline.helpers.triangle import Triangle
@@ -72,6 +72,8 @@ class Renderer:
         self.aspect_ration = float(screen_height / screen_width)
         self.fov_rad = 1.0 / tan(fov * 0.5 / 180.0 * pi)
         self.theta = 0.0
+
+        self.camera = Vec3(0, 0, 0)
 
         # Set projection matrix
         proj_mat = Mat4x4()
@@ -189,13 +191,25 @@ class Renderer:
                 tri_translated.p[1].z += 3.0
                 tri_translated.p[2].z += 3.0
 
-                # Project triangles
-                tri_projected = self._project_triangle(tri_translated)
+                # Get normal of triangle
+                line_a = tri_translated.p[1] - tri_translated.p[0]
+                line_b = tri_translated.p[2] - tri_translated.p[0]
+                normal = line_a // line_b
 
-                # Scale triangle into view
-                tri_scaled = self._scale_triangle(tri_projected)
+                # Normalize the normal
+                normal_length = sqrt(normal.x * normal.x + normal.y * normal.y + normal.z * normal.z)
+                normal.x /= normal_length
+                normal.y /= normal_length
+                normal.z /= normal_length
 
-                # Draw triangle to screen
-                self._draw_triangle(tri_scaled, window)
+                if normal * (tri_translated.p[0] - self.camera) < 0.0:
+                    # Project triangles
+                    tri_projected = self._project_triangle(tri_translated)
+
+                    # Scale triangle into view
+                    tri_scaled = self._scale_triangle(tri_projected)
+
+                    # Draw triangle to screen
+                    self._draw_triangle(tri_scaled, window)
 
         return window
