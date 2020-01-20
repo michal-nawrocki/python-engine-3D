@@ -71,6 +71,7 @@ class Renderer:
         self.screen_width = screen_width
         self.aspect_ration = float(screen_height / screen_width)
         self.fov_rad = 1.0 / tan(fov * 0.5 / 180.0 * pi)
+        self.theta = 0.0
 
         # Set projection matrix
         proj_mat = Mat4x4()
@@ -138,7 +139,7 @@ class Renderer:
 
         return tri_scaled
 
-    def render_frame(self, window: Canvas) -> Canvas:
+    def render_frame(self, window: Canvas, time_diff: float) -> Canvas:
         # Clear screen
         window.delete("all")
 
@@ -146,24 +147,24 @@ class Renderer:
         objects = get_objects_for_scene()
 
         # Angle for rotation
-        theta = 1.2
+        self.theta += time_diff * 1.0
 
         # Setup Z-Rotation matrix
         z_rotate = Mat4x4()
-        z_rotate.m[0][0] = cos(theta)
-        z_rotate.m[0][1] = sin(theta)
-        z_rotate.m[1][0] = -sin(theta)
-        z_rotate.m[1][1] = cos(theta)
+        z_rotate.m[0][0] = cos(self.theta)
+        z_rotate.m[0][1] = sin(self.theta)
+        z_rotate.m[1][0] = -sin(self.theta)
+        z_rotate.m[1][1] = cos(self.theta)
         z_rotate.m[2][2] = 1
         z_rotate.m[3][3] = 1
 
         # Setup X-Rotation matrix
         x_rotate = Mat4x4()
         x_rotate.m[0][0] = 1
-        x_rotate.m[1][1] = cos(theta * 0.5)
-        x_rotate.m[1][2] = sin(theta * 0.5)
-        x_rotate.m[2][1] = -sin(theta * 0.5)
-        x_rotate.m[2][2] = cos(theta * 0.5)
+        x_rotate.m[1][1] = cos(self.theta * 0.5)
+        x_rotate.m[1][2] = sin(self.theta * 0.5)
+        x_rotate.m[2][1] = -sin(self.theta * 0.5)
+        x_rotate.m[2][2] = cos(self.theta * 0.5)
         x_rotate.m[3][3] = 1
 
         # Loop on objects in scene

@@ -1,4 +1,5 @@
 from tkinter import *
+import time
 
 from math_3d.mat4x4 import Mat4x4
 from pipeline.renderer import Renderer
@@ -22,6 +23,23 @@ if __name__ == "__main__":
 
     top = Tk()
     top.title("Python Engine 3D")
-    rendered_frame = ren.render_frame(Canvas(top, bg="black", width=600, height=600))
-    rendered_frame.pack()
-    top.mainloop()
+    window = Canvas(top, bg="black", width=600, height=600)
+    window.pack()
+    time_1 = time.time()
+    time_2 = time.time()
+
+    # Main loop
+    while True:
+        """
+            tp2 = std::chrono::system_clock::now();
+            std::chrono::duration<float> elapsedTime = tp2 - tp1;
+            tp1 = tp2;
+            float fElapsedTime = elapsedTime.count();
+        """
+        # Calculating time difference used for keeping stuff in sync
+        time_2 = time.time()
+        time_diff = time_2 - time_1
+        time_1 = time_2
+
+        rendered_frame = ren.render_frame(window, time_diff)
+        rendered_frame.update()
