@@ -1,6 +1,6 @@
-from math import tan, pi
-
-from graphics import *
+from math import sin, cos, tan, pi
+from tkinter import Canvas, mainloop
+from copy import deepcopy
 from math_3d.mat4x4 import Mat4x4
 from math_3d.vec3 import Vec3
 from pipeline.helpers.triangle import Triangle
@@ -99,18 +99,15 @@ class Renderer:
         return tri_projected
 
     @staticmethod
-    def _draw_triangle(tri: Triangle) -> None:
+    def _draw_triangle(tri: Triangle, window: Canvas) -> None:
         """
         Draw triangle to screen
 
         :param tri: Triangle to be drawn
         """
+        points = [tri.p[0].x, tri.p[0].y, tri.p[1].x, tri.p[1].y, tri.p[2].x, tri.p[2].y]
 
-        # For now just print the vectors
-        for vec in tri.p:
-            print(vec.x)
-            print(vec.y)
-            print(vec.z)
+        window.create_polygon(points, outline="white", fill="")
 
     def _scale_triangle(self, tri: Triangle) -> Triangle:
         """
@@ -130,31 +127,63 @@ class Renderer:
         tri_scaled.p[1].y += 1.0
         tri_scaled.p[2].y += 1.0
 
-        tri_scaled.p[0].x *= 0.5 * self.screen_width
-        tri_scaled.p[0].y *= 1.0 * self.screen_height
+        tri_scaled.p[0].x *= 0.6 * self.screen_width
+        tri_scaled.p[0].y *= 0.6 * self.screen_height
 
-        tri_scaled.p[1].x *= 0.5 * self.screen_width
-        tri_scaled.p[1].y *= 1.0 * self.screen_height
+        tri_scaled.p[1].x *= 0.6 * self.screen_width
+        tri_scaled.p[1].y *= 0.6 * self.screen_height
 
-        tri_scaled.p[2].x *= 0.5 * self.screen_width
-        tri_scaled.p[2].y *= 1.0 * self.screen_height
+        tri_scaled.p[2].x *= 0.6 * self.screen_width
+        tri_scaled.p[2].y *= 0.6 * self.screen_height
 
         return tri_scaled
 
-    def run(self):
+    def render_frame(self, window: Canvas) -> Canvas:
         # Clear screen
-        # TODO: Implement this
+        window.delete("all")
 
         # Get objects in scene
         objects = get_objects_for_scene()
+
+        # Angle for rotation
+        theta = 1.2
+
+        # Setup Z-Rotation matrix
+        z_rotate = Mat4x4()
+        z_rotate.m[0][0] = cos(theta)
+        z_rotate.m[0][1] = sin(theta)
+        z_rotate.m[1][0] = -sin(theta)
+        z_rotate.m[1][1] = cos(theta)
+        z_rotate.m[2][2] = 1
+        z_rotate.m[3][3] = 1
+
+        # Setup X-Rotation matrix
+        x_rotate = Mat4x4()
+        x_rotate.m[0][0] = 1
+        x_rotate.m[1][1] = cos(theta * 0.5)
+        x_rotate.m[1][2] = sin(theta * 0.5)
+        x_rotate.m[2][1] = -sin(theta * 0.5)
+        x_rotate.m[2][2] = cos(theta * 0.5)
+        x_rotate.m[3][3] = 1
 
         # Loop on objects in scene
         for obj in objects:
             # Loop on triangles in an object
             for tri in obj:
-                tri_translated = tri
+                # Rotate about Z-axis
+                tri_rotated_z = tri
+                tri_rotated_z.p[0] = z_rotate * tri.p[0]
+                tri_rotated_z.p[1] = z_rotate * tri.p[1]
+                tri_rotated_z.p[2] = z_rotate * tri.p[2]
+
+                # Rotate about X-axis
+                tri_rotated_x = tri_rotated_z
+                tri_rotated_x.p[0] = x_rotate * tri_rotated_x.p[0]
+                tri_rotated_x.p[1] = x_rotate * tri_rotated_x.p[1]
+                tri_rotated_x.p[2] = x_rotate * tri_rotated_x.p[2]
 
                 # Offset into Z-direction
+                tri_translated = tri_rotated_x
                 tri_translated.p[0].z += 3.0
                 tri_translated.p[1].z += 3.0
                 tri_translated.p[2].z += 3.0
@@ -166,4 +195,6 @@ class Renderer:
                 tri_scaled = self._scale_triangle(tri_projected)
 
                 # Draw triangle to screen
-                self._draw_triangle(tri_scaled)
+                self._draw_triangle(tri_scaled, window)
+
+        return window

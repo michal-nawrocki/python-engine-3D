@@ -1,3 +1,5 @@
+from tkinter import *
+
 from math_3d.mat4x4 import Mat4x4
 from pipeline.renderer import Renderer
 
@@ -14,9 +16,12 @@ if __name__ == "__main__":
         near=0.1,
         far=100.,
         fov=90.,
-        screen_height=256,
-        screen_width=240,
+        screen_height=600,
+        screen_width=600,
     )
 
-    ren.run()
-
+    top = Tk()
+    top.title("Python Engine 3D")
+    rendered_frame = ren.render_frame(Canvas(top, bg="black", width=600, height=600))
+    rendered_frame.pack()
+    top.mainloop()
