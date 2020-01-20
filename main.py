@@ -35,5 +35,10 @@ if __name__ == "__main__":
         time_diff = time_2 - time_1
         time_1 = time_2
 
+        # Set FPS
+        top.title(f"Python Engine 3D - FPS: { 1 / time_diff}")
+
+        # Render frame, display it and get update from GUI
         rendered_frame = ren.render_frame(window, time_diff)
+        rendered_frame.update_idletasks()
         rendered_frame.update()
