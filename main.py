@@ -1,18 +1,13 @@
-from tkinter import *
+from tkinter import (
+    Canvas,
+    Tk,
+)
 import time
 
-from math_3d.mat4x4 import Mat4x4
 from pipeline.renderer import Renderer
 
 if __name__ == "__main__":
     print("3D engine written in Python3.6")
-
-    matrix = Mat4x4()
-    matrix.m[0] = [1, 2, 3, 4]
-    matrix.m[3] = [5, 4, 3, 2]
-
-    matrix.print_matrix()
-
     ren = Renderer(
         near=0.1,
         far=100.,
@@ -36,7 +31,7 @@ if __name__ == "__main__":
         time_1 = time_2
 
         # Set FPS
-        top.title(f"Python Engine 3D - FPS: {(1 / time_diff):.0f}")
+        top.title(f"Python Engine 3D - FPS: {(1 / (time_diff + 0.00000001)):.0f}")
 
         # Render frame, display it and get update from GUI
         rendered_frame = ren.render_frame(window, time_diff)
