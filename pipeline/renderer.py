@@ -1,5 +1,5 @@
-from math import sin, cos, tan, pi, sqrt
-from tkinter import Canvas, mainloop
+from math import sin, cos, tan, pi
+from tkinter import Canvas
 
 from math_3d.mat4x4 import Mat4x4
 from math_3d.vec3 import Vec3
@@ -197,12 +197,12 @@ class Renderer:
                 normal = line_a // line_b
 
                 # Normalize the normal
-                normal_length = sqrt(normal.x * normal.x + normal.y * normal.y + normal.z * normal.z)
-                normal.x /= normal_length
-                normal.y /= normal_length
-                normal.z /= normal_length
+                normal.normalize()
 
                 if normal * (tri_translated.p[0] - self.camera) < 0.0:
+                    # Illuminate triangle
+                    light_direction = Vec3(0.0, 0.0, -1.0).normalize()  # towards the camera
+
                     # Project triangles
                     tri_projected = self._project_triangle(tri_translated)
 
