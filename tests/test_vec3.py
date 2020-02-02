@@ -74,3 +74,11 @@ class TestVec3(unittest.TestCase):
 
         self.assertFalse(vec_a != vec_a, "Asserting vec_a == vec_a")
         self.assertTrue(vec_a != vec_b, "Asserting vec_a == vec_b")
+
+    def test_normalize(self):
+        """ Testing .normalize() """
+        vec = Vec3(4, 3, 0).normalize()
+
+        self.assertEqual(0.8, vec.x, "Asserting vec3.x")
+        self.assertEqual(0.6, vec.y, "Asserting vec3.y")
+        self.assertEqual(0, vec.z, "Asserting vec3.z")
