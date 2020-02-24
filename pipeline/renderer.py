@@ -102,6 +102,38 @@ class Renderer:
         return tri_projected
 
     @staticmethod
+    def _calculate_shade_of_triangle(tri: Triangle):
+        """
+        Calculate the shade of a color based on triangles angle to light
+
+        As we draw only white for now, I use hardcoded values of shades of white
+        """
+        dot_value = tri.angle_to_light
+
+        if dot_value <= 0.1:
+            shade_of_triangle = "#191919"
+        elif dot_value <= 0.2:
+            shade_of_triangle = "#323232"
+        elif dot_value <= 0.3:
+            shade_of_triangle = "#4c4c4c"
+        elif dot_value <= 0.4:
+            shade_of_triangle = "#666666"
+        elif dot_value <= 0.5:
+            shade_of_triangle = "#7f7f7f"
+        elif dot_value <= 0.6:
+            shade_of_triangle = "#999999"
+        elif dot_value <= 0.7:
+            shade_of_triangle = "#b2b2b2"
+        elif dot_value <= 0.8:
+            shade_of_triangle = "#cccccc"
+        elif dot_value <= 0.9:
+            shade_of_triangle = "#e5e5e5"
+        else:
+            shade_of_triangle = "#ffffff"
+
+        return shade_of_triangle
+
+    @staticmethod
     def _draw_triangle(tri: Triangle, window: Canvas) -> None:
         """
         Draw triangle to screen
@@ -109,8 +141,9 @@ class Renderer:
         :param tri: Triangle to be drawn
         """
         points = [tri.p[0].x, tri.p[0].y, tri.p[1].x, tri.p[1].y, tri.p[2].x, tri.p[2].y]
+        shade_of_triangle = Renderer._calculate_shade_of_triangle(tri)
 
-        window.create_polygon(points, outline="white", fill="")
+        window.create_polygon(points, outline="red", fill=shade_of_triangle)
 
     def _scale_triangle(self, tri: Triangle) -> Triangle:
         """
@@ -202,6 +235,8 @@ class Renderer:
                 if normal * (tri_translated.p[0] - self.camera) < 0.0:
                     # Illuminate triangle
                     light_direction = Vec3(0.0, 0.0, -1.0).normalize()  # towards the camera
+                    dot_product =  light_direction * normal
+                    tri_translated.angle_to_light = dot_product
 
                     # Project triangles
                     tri_projected = self._project_triangle(tri_translated)
