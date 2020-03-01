@@ -3,6 +3,7 @@ from tkinter import Canvas
 
 from math_3d.mat4x4 import Mat4x4
 from math_3d.vec3 import Vec3
+from pipeline.helpers.color import Color
 from pipeline.helpers.triangle import Triangle
 
 
@@ -102,6 +103,24 @@ class Renderer:
         return tri_projected
 
     @staticmethod
+    def _calculate_shade_of_triangle(tri: Triangle) -> Color:
+        """
+        Calculate the shade of a color based on triangles angle to light
+
+        Using color in HLS color space we can manipulate the illumination
+        """
+        dot_value = tri.angle_to_light
+        base_color = Color(Color.RGB, 0, 255, 0)  # Use Green for now
+
+        # Change illumination of triangle based on angle
+        color_hls_form = base_color.to_hls()
+        color_hls_form[1] *= dot_value
+
+        shade_of_triangle = Color(Color.HLS, *color_hls_form)
+
+        return shade_of_triangle
+
+    @staticmethod
     def _draw_triangle(tri: Triangle, window: Canvas) -> None:
         """
         Draw triangle to screen
@@ -109,8 +128,9 @@ class Renderer:
         :param tri: Triangle to be drawn
         """
         points = [tri.p[0].x, tri.p[0].y, tri.p[1].x, tri.p[1].y, tri.p[2].x, tri.p[2].y]
+        shade_of_triangle = Renderer._calculate_shade_of_triangle(tri)
 
-        window.create_polygon(points, outline="white", fill="")
+        window.create_polygon(points, outline="red", fill=shade_of_triangle.to_hex())
 
     def _scale_triangle(self, tri: Triangle) -> Triangle:
         """
@@ -202,6 +222,8 @@ class Renderer:
                 if normal * (tri_translated.p[0] - self.camera) < 0.0:
                     # Illuminate triangle
                     light_direction = Vec3(0.0, 0.0, -1.0).normalize()  # towards the camera
+                    dot_product =  light_direction * normal
+                    tri_translated.angle_to_light = dot_product
 
                     # Project triangles
                     tri_projected = self._project_triangle(tri_translated)
