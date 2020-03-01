@@ -103,18 +103,17 @@ class Renderer:
         return tri_projected
 
     @staticmethod
-    def _calculate_shade_of_triangle(tri: Triangle):
+    def _calculate_shade_of_triangle(tri: Triangle) -> Color:
         """
         Calculate the shade of a color based on triangles angle to light
 
-        As we draw only white for now, I use hardcoded values of shades of white
+        Using color in HLS color space we can manipulate the illumination
         """
         dot_value = tri.angle_to_light
-        base_color = Color(Color.RGB, 0, 255, 0)
+        base_color = Color(Color.RGB, 0, 255, 0)  # Use Green for now
 
+        # Change illumination of triangle based on angle
         color_hls_form = base_color.to_hls()
-
-        # Change ilumination of triangle
         color_hls_form[1] *= dot_value
 
         shade_of_triangle = Color(Color.HLS, *color_hls_form)
