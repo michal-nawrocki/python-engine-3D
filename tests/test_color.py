@@ -58,3 +58,11 @@ class TestColor(unittest.TestCase):
 
         white_as_hls = Color(Color.HLS, 357, 1, 0.21)
         self.assertEqual([255, 255, 255], white_as_hls.to_rgb())
+
+    def test_to_hex(self):
+        """Test conversion to hex"""
+        green_as_rgb = Color(Color.RGB, 0, 255, 0)
+        self.assertEqual("#00ff00", green_as_rgb.to_hex())
+
+        green_as_hls = Color(Color.HLS, *green_as_rgb.to_hls())
+        self.assertEqual("#00ff00", green_as_hls.to_hex())
