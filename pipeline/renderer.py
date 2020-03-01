@@ -3,6 +3,7 @@ from tkinter import Canvas
 
 from math_3d.mat4x4 import Mat4x4
 from math_3d.vec3 import Vec3
+from pipeline.helpers.color import Color
 from pipeline.helpers.triangle import Triangle
 
 
@@ -109,27 +110,14 @@ class Renderer:
         As we draw only white for now, I use hardcoded values of shades of white
         """
         dot_value = tri.angle_to_light
+        base_color = Color(Color.RGB, 0, 255, 0)
 
-        if dot_value <= 0.1:
-            shade_of_triangle = "#191919"
-        elif dot_value <= 0.2:
-            shade_of_triangle = "#323232"
-        elif dot_value <= 0.3:
-            shade_of_triangle = "#4c4c4c"
-        elif dot_value <= 0.4:
-            shade_of_triangle = "#666666"
-        elif dot_value <= 0.5:
-            shade_of_triangle = "#7f7f7f"
-        elif dot_value <= 0.6:
-            shade_of_triangle = "#999999"
-        elif dot_value <= 0.7:
-            shade_of_triangle = "#b2b2b2"
-        elif dot_value <= 0.8:
-            shade_of_triangle = "#cccccc"
-        elif dot_value <= 0.9:
-            shade_of_triangle = "#e5e5e5"
-        else:
-            shade_of_triangle = "#ffffff"
+        color_hls_form = base_color.to_hls()
+
+        # Change ilumination of triangle
+        color_hls_form[1] *= dot_value
+
+        shade_of_triangle = Color(Color.HLS, *color_hls_form)
 
         return shade_of_triangle
 
@@ -143,7 +131,7 @@ class Renderer:
         points = [tri.p[0].x, tri.p[0].y, tri.p[1].x, tri.p[1].y, tri.p[2].x, tri.p[2].y]
         shade_of_triangle = Renderer._calculate_shade_of_triangle(tri)
 
-        window.create_polygon(points, outline="red", fill=shade_of_triangle)
+        window.create_polygon(points, outline="red", fill=shade_of_triangle.to_hex())
 
     def _scale_triangle(self, tri: Triangle) -> Triangle:
         """
