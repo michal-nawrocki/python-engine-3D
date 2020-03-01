@@ -29,8 +29,13 @@ class Color:
         self.color_values = args
 
     def to_rgb(self):
-        # Convert Hue to float value
         values = list(self.color_values)
+
+        # Check if we're already RGB
+        if self.space == Color.RGB:
+            return values
+
+        # Convert Hue to float value
         values[0] = values[0]/360
 
         # Get converted colors from HLS to RGB as floats
@@ -41,6 +46,10 @@ class Color:
         return converted
 
     def to_hls(self):
+        # Check if we're already hls
+        if self.space == Color.HLS:
+            return list(self.color_values)
+
         # Convert RGB ints to floats
         as_floats = list(map(lambda value: round(value/255), self.color_values))
 
@@ -51,6 +60,14 @@ class Color:
         converted[0] = round(converted[0]*360)
 
         return converted
+
+    def to_hex(self):
+        # Get RGB representation
+        as_rgb = self.to_rgb()
+
+        # To hex
+        as_hex = "#%02x%02x%02x" % tuple(as_rgb)
+        return as_hex
 
     @staticmethod
     def __validate_values(space, args):
