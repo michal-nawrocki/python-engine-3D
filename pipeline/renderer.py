@@ -75,6 +75,7 @@ class Renderer:
         self.theta = 0.0
 
         self.camera = Vec3(0, 0, 0)
+        self.look_direction = Vec3(0, 0, 1)
 
         # Set projection matrix
         proj_mat = Mat4x4()
@@ -101,6 +102,54 @@ class Renderer:
         tri_projected.p[2] = self.projection_matrix * tri.p[2]
 
         return tri_projected
+
+    @staticmethod
+    def _point_at_matrix(position: Vec3, target: Vec3, up: Vec3) -> Mat4x4:
+        # Calculate forward direction
+        new_forward = target - position
+        new_forward.normalize()
+
+        # Calculate new Up direction
+        a = new_forward * (up * new_forward)
+        new_up = up - a
+        new_up.normalize()
+
+        # New right
+        new_right = new_up // new_forward
+
+        # Construct Dimensioning and transaltion matrix
+        matrix = Mat4x4()
+        matrix.m[0] = [new_right.x, new_right.y, new_right.z, 0.0]
+        matrix.m[1] = [new_up.x, new_up.y, new_up.z, 0.0]
+        matrix.m[2] = [new_forward.x, new_forward.y, new_forward.z, 0.0]
+        matrix.m[3] = [position.x, position.y, position.z, 1.0]
+
+        return matrix
+
+    @staticmethod
+    def _quick_inverse_matrix(original: Mat4x4) -> Mat4x4:
+        matrix = Mat4x4()
+        matrix.m[0][0] = original.m[0][0]
+        matrix.m[0][1] = original.m[1][0]
+        matrix.m[0][2] = original.m[2][0]
+        matrix.m[0][3] = 0.0
+
+        matrix.m[1][0] = original.m[0][1]
+        matrix.m[1][1] = original.m[1][1]
+        matrix.m[1][2] = original.m[2][1]
+        matrix.m[1][3] = 0.0
+
+        matrix.m[2][0] = original.m[0][2]
+        matrix.m[2][1] = original.m[1][2]
+        matrix.m[2][2] = original.m[2][2]
+        matrix.m[2][3] = 0.0
+
+        matrix.m[3][0] = -(original.m[3][0] * original.m[0][0] + original.m[3][1] * original.m[1][0] + original.m[3][2] * original.m[2][0])
+        matrix.m[3][1] = -(original.m[3][0] * original.m[0][1] + original.m[3][1] * original.m[1][1] + original.m[3][2] * original.m[2][1])
+        matrix.m[3][2] = -(original.m[3][0] * original.m[0][2] + original.m[3][1] * original.m[1][2] + original.m[3][2] * original.m[2][2])
+        matrix.m[3][3] = 1.0
+
+        return matrix
 
     @staticmethod
     def _calculate_shade_of_triangle(tri: Triangle) -> Color:
@@ -169,7 +218,7 @@ class Renderer:
         objects = get_objects_for_scene()
 
         # Angle for rotation
-        self.theta += time_diff * 1.0
+        # self.theta += time_diff * 1.0
 
         # Setup Z-Rotation matrix
         z_rotate = Mat4x4()
@@ -188,6 +237,12 @@ class Renderer:
         x_rotate.m[2][1] = -sin(self.theta * 0.5)
         x_rotate.m[2][2] = cos(self.theta * 0.5)
         x_rotate.m[3][3] = 1
+
+        # Make view matrix for camera
+        up_vector = Vec3(0, 1, 0)
+        target_vector = self.camera + self.look_direction
+        camera_matrix = self._point_at_matrix(self.camera, target_vector, up_vector)
+        camera_view = self._quick_inverse_matrix(camera_matrix)
 
         # Loop on objects in scene
         for obj in objects:
@@ -222,11 +277,17 @@ class Renderer:
                 if normal * (tri_translated.p[0] - self.camera) < 0.0:
                     # Illuminate triangle
                     light_direction = Vec3(0.0, 0.0, -1.0).normalize()  # towards the camera
-                    dot_product =  light_direction * normal
+                    dot_product = max(0.1, light_direction * normal)
                     tri_translated.angle_to_light = dot_product
 
+                    # Convert World Space into View Space
+                    tri_viewed = tri_translated
+                    tri_viewed.p[0] = camera_view * tri_translated.p[0]
+                    tri_viewed.p[1] = camera_view * tri_translated.p[1]
+                    tri_viewed.p[2] = camera_view * tri_translated.p[2]
+
                     # Project triangles
-                    tri_projected = self._project_triangle(tri_translated)
+                    tri_projected = self._project_triangle(tri_viewed)
 
                     # Scale triangle into view
                     tri_scaled = self._scale_triangle(tri_projected)
