@@ -73,6 +73,7 @@ class Renderer:
         self.aspect_ration = float(screen_height / screen_width)
         self.fov_rad = 1.0 / tan(fov * 0.5 / 180.0 * pi)
         self.theta = 0.0
+        self.time_diff = 1
 
         self.camera = Vec3(0, 0, 0)
         self.look_direction = Vec3(0, 0, 1)
@@ -87,6 +88,22 @@ class Renderer:
         proj_mat.m[3][3] = 0.0
 
         self.projection_matrix = proj_mat
+
+    def move_camera(self, event):
+        print(f"Pressed key: {event}")
+        if event.char == "w":
+            self.camera.y -= 8.0 * self.time_diff
+
+        if event.char == "s":
+            self.camera.y += 8.0 * self.time_diff
+
+        if event.char == "a":
+            self.camera.x -= 8.0 * self.time_diff
+
+        if event.char == "d":
+            self.camera.x += 8.0 * self.time_diff
+
+        print(f"Elapsed time: {self.time_diff}")
 
     def _project_triangle(self, tri: Triangle) -> Triangle:
         """
@@ -213,6 +230,9 @@ class Renderer:
     def render_frame(self, window: Canvas, time_diff: float) -> Canvas:
         # Clear screen
         window.delete("all")
+
+        # update time_diff
+        self.time_diff = time_diff
 
         # Get objects in scene
         objects = get_objects_for_scene()

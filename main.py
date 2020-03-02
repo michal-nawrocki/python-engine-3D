@@ -20,20 +20,24 @@ if __name__ == "__main__":
     top.title("Python Engine 3D")
     window = Canvas(top, bg="black", width=600, height=600)
     window.pack()
+
     time_1 = time.time()
     time_2 = time.time()
+    time_diff = 1
+    # Pack event handler
+    top.bind("<Key>", ren.move_camera)
 
     # Main loop
     while True:
-        # Calculating time difference used for keeping stuff in sync
-        time_2 = time.time()
-        time_diff = time_2 - time_1
-        time_1 = time_2
-
         # Set FPS
-        top.title(f"Python Engine 3D - FPS: {(1 / (time_diff + 0.00000001)):.0f}")
+        top.title(f"Python Engine 3D - FPS: {(1 / time_diff):.0f}")
 
         # Render frame, display it and get update from GUI
         rendered_frame = ren.render_frame(window, time_diff)
         rendered_frame.update_idletasks()
         rendered_frame.update()
+
+        # Calculate time difference used for keeping stuff in sync
+        time_2 = time.time()
+        time_diff = time_2 - time_1
+        time_1 = time_2
