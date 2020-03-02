@@ -235,7 +235,7 @@ class Renderer:
                 if normal * (tri_translated.p[0] - self.camera) < 0.0:
                     # Illuminate triangle
                     light_direction = Vec3(0.0, 0.0, -1.0).normalize()  # towards the camera
-                    dot_product =  light_direction * normal
+                    dot_product = light_direction * normal
                     tri_translated.angle_to_light = dot_product
 
                     # Project triangles
