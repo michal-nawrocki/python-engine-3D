@@ -4,6 +4,7 @@ from tkinter import (
 )
 import time
 
+from input.CameraMovement import CameraMovement
 from pipeline.renderer import Renderer
 
 if __name__ == "__main__":
@@ -25,7 +26,9 @@ if __name__ == "__main__":
     time_2 = time.time()
     time_diff = 1
     # Pack event handler
-    top.bind("<Key>", ren.move_camera)
+    camera_movement_handler = CameraMovement(ren.camera)
+    top.bind("<KeyPress>", camera_movement_handler.handle_input)
+    top.bind("<KeyRelease>", camera_movement_handler.clear_movement)
 
     # Main loop
     while True:

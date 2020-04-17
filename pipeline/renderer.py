@@ -3,6 +3,9 @@ from tkinter import Canvas
 
 from math_3d.mat4x4 import Mat4x4
 from math_3d.vec3 import Vec3
+
+from pipeline.camera import Camera
+
 from pipeline.helpers.color import Color
 from pipeline.helpers.triangle import Triangle
 
@@ -75,7 +78,7 @@ class Renderer:
         self.theta = 0.0
         self.time_diff = 1
 
-        self.camera = Vec3(0, 0, 0)
+        self.camera = Camera(Vec3(0, 0, 0))
         self.look_direction = Vec3(0, 0, 1)
 
         # Set projection matrix
@@ -89,21 +92,26 @@ class Renderer:
 
         self.projection_matrix = proj_mat
 
-    def move_camera(self, event):
-        print(f"Pressed key: {event}")
-        if event.char == "w":
-            self.camera.y -= 8.0 * self.time_diff
+    def update_camera_position(self):
+        if self.camera.move_direction == "UP":
+            self.camera.position.y -= 8.0 * self.time_diff
 
-        if event.char == "s":
-            self.camera.y += 8.0 * self.time_diff
+        if self.camera.move_direction == "DOWN":
+            self.camera.position.y += 8.0 * self.time_diff
 
-        if event.char == "a":
-            self.camera.x -= 8.0 * self.time_diff
+        if self.camera.move_direction == "LEFT":
+            self.camera.position.x -= 8.0 * self.time_diff
 
-        if event.char == "d":
-            self.camera.x += 8.0 * self.time_diff
+        if self.camera.move_direction == "RIGHT":
+            self.camera.position.x += 8.0 * self.time_diff
 
-        print(f"Elapsed time: {self.time_diff}")
+        if self.camera.move_direction == "FORWARDS":
+            self.camera.position.z -= 8.0 * self.time_diff
+
+        if self.camera.move_direction == "BACKWARDS":
+            self.camera.position.z += 8.0 * self.time_diff
+
+        # print(f"Elapsed time: {self.time_diff}")
 
     def _project_triangle(self, tri: Triangle) -> Triangle:
         """
@@ -234,11 +242,14 @@ class Renderer:
         # update time_diff
         self.time_diff = time_diff
 
+        # update camera position
+        self.update_camera_position()
+
         # Get objects in scene
         objects = get_objects_for_scene()
 
         # Angle for rotation
-        # self.theta += time_diff * 1.0
+        self.theta += time_diff * 1.0
 
         # Setup Z-Rotation matrix
         z_rotate = Mat4x4()
@@ -260,8 +271,8 @@ class Renderer:
 
         # Make view matrix for camera
         up_vector = Vec3(0, 1, 0)
-        target_vector = self.camera + self.look_direction
-        camera_matrix = self._point_at_matrix(self.camera, target_vector, up_vector)
+        target_vector = self.camera.position + self.look_direction
+        camera_matrix = self._point_at_matrix(self.camera.position, target_vector, up_vector)
         camera_view = self._quick_inverse_matrix(camera_matrix)
 
         # Loop on objects in scene
@@ -294,7 +305,7 @@ class Renderer:
                 # Normalize the normal
                 normal.normalize()
 
-                if normal * (tri_translated.p[0] - self.camera) < 0.0:
+                if normal * (tri_translated.p[0] - self.camera.position) < 0.0:
                     # Illuminate triangle
                     light_direction = Vec3(0.0, 0.0, -1.0).normalize()  # towards the camera
                     dot_product = max(0.1, light_direction * normal)
