@@ -79,7 +79,6 @@ class Renderer:
         self.time_diff = 1
 
         self.camera = Camera(Vec3(0, 0, 0))
-        self.look_direction = Vec3(0, 0, 1)
 
         # Set projection matrix
         proj_mat = Mat4x4()
@@ -105,11 +104,19 @@ class Renderer:
         if self.camera.move_direction == "RIGHT":
             self.camera.position.x += 8.0 * self.time_diff
 
+        forward_vector = self.camera.look_direction * (8.0 * self.time_diff)
+
         if self.camera.move_direction == "FORWARDS":
-            self.camera.position.z -= 8.0 * self.time_diff
+            self.camera.position += forward_vector
 
         if self.camera.move_direction == "BACKWARDS":
-            self.camera.position.z += 8.0 * self.time_diff
+            self.camera.position -= forward_vector
+
+        if self.camera.move_direction == "TURN_LEFT":
+            self.camera.yaw -= 2.0 * self.time_diff
+
+        if self.camera.move_direction == "TURN_RIGHT":
+            self.camera.yaw += 2.0 * self.time_diff
 
     def _project_triangle(self, tri: Triangle) -> Triangle:
         """
@@ -247,7 +254,7 @@ class Renderer:
         objects = get_objects_for_scene()
 
         # Angle for rotation
-        self.theta += time_diff * 1.0
+        # self.theta += time_diff * 1.0
 
         # Setup Z-Rotation matrix
         z_rotate = Mat4x4()
@@ -269,7 +276,12 @@ class Renderer:
 
         # Make view matrix for camera
         up_vector = Vec3(0, 1, 0)
-        target_vector = self.camera.position + self.look_direction
+        # target_vector = self.camera.position + self.camera.look_direction
+        target_vector = Vec3(0, 0, 1)
+        camera_rotation = Mat4x4.y_rotation_matrix(self.camera.yaw)
+        look_direction = camera_rotation * target_vector
+        target_vector = self.camera.position + look_direction
+
         camera_matrix = self._point_at_matrix(self.camera.position, target_vector, up_vector)
         camera_view = self._quick_inverse_matrix(camera_matrix)
 

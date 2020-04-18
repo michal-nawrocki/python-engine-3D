@@ -1,4 +1,6 @@
 from typing import TypeVar
+from math import cos, sin
+
 from math_3d.vec3 import Vec3
 
 
@@ -35,6 +37,42 @@ class Mat4x4:
             z /= w
 
         return Vec3(x, y, z)
+
+    @staticmethod
+    def x_rotation_matrix(radians: float):
+        matrix = Mat4x4()
+        matrix.m[0][0] = 1.0
+        matrix.m[1][1] = cos(radians)
+        matrix.m[1][2] = sin(radians)
+        matrix.m[2][1] = -sin(radians)
+        matrix.m[2][2] = cos(radians)
+        matrix.m[3][3] = 1.0
+
+        return matrix
+
+    @staticmethod
+    def y_rotation_matrix(radians: float):
+        matrix = Mat4x4()
+        matrix.m[0][0] = cos(radians)
+        matrix.m[0][2] = sin(radians)
+        matrix.m[2][0] = -sin(radians)
+        matrix.m[1][1] = 1.0
+        matrix.m[2][2] = cos(radians)
+        matrix.m[3][3] = 1.0
+
+        return matrix
+
+    @staticmethod
+    def z_rotation_matrix(radians: float):
+        matrix = Mat4x4()
+        matrix.m[0][0] = cos(radians)
+        matrix.m[0][1] = sin(radians)
+        matrix.m[1][0] = -sin(radians)
+        matrix.m[1][1] = cos(radians)
+        matrix.m[2][2] = 1.0
+        matrix.m[3][3] = 1.0
+
+        return matrix
 
     def print_matrix(self):
         """

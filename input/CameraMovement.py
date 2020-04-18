@@ -10,12 +10,15 @@ _LOGGER = get_a_logger(__name__)
 
 class CameraMovement:
 
-    up_controls = ['w', 'Up', 100]
+    up_controls = ['w', 'Up']
     down_controls = ['s', 'Down']
     left_controls = ['a', 'Left']
     right_controls = ['d', 'Right']
-    forward_controls = ["z"]
-    backward_controls = ["x"]
+
+    forward_controls = ["8"]
+    backward_controls = ["2"]
+    turn_left_controls = ["4"]
+    turn_right_controls = ["6"]
 
     def __init__(self, camera: Camera):
         self.camera = camera
@@ -40,6 +43,12 @@ class CameraMovement:
 
         if event.keysym in self.backward_controls:
             self.camera.move_direction = "BACKWARDS"
+
+        if event.keysym in self.turn_left_controls:
+            self.camera.move_direction = "TURN_LEFT"
+
+        if event.keysym in self.turn_right_controls:
+            self.camera.move_direction = "TURN_RIGHT"
 
     def clear_movement(self, event):
         _LOGGER.info(f"Key released: {event}")
