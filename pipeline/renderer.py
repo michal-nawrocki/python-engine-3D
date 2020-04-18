@@ -174,9 +174,15 @@ class Renderer:
         matrix.m[2][2] = original.m[2][2]
         matrix.m[2][3] = 0.0
 
-        matrix.m[3][0] = -(original.m[3][0] * original.m[0][0] + original.m[3][1] * original.m[1][0] + original.m[3][2] * original.m[2][0])
-        matrix.m[3][1] = -(original.m[3][0] * original.m[0][1] + original.m[3][1] * original.m[1][1] + original.m[3][2] * original.m[2][1])
-        matrix.m[3][2] = -(original.m[3][0] * original.m[0][2] + original.m[3][1] * original.m[1][2] + original.m[3][2] * original.m[2][2])
+        matrix.m[3][0] = -(
+                original.m[3][0] * original.m[0][0] + original.m[3][1] * original.m[1][0] + original.m[3][2] *
+                original.m[2][0])
+        matrix.m[3][1] = -(
+                original.m[3][0] * original.m[0][1] + original.m[3][1] * original.m[1][1] + original.m[3][2] *
+                original.m[2][1])
+        matrix.m[3][2] = -(
+                original.m[3][0] * original.m[0][2] + original.m[3][1] * original.m[1][2] + original.m[3][2] *
+                original.m[2][2])
         matrix.m[3][3] = 1.0
 
         return matrix
@@ -276,14 +282,16 @@ class Renderer:
 
         # Make view matrix for camera
         up_vector = Vec3(0, 1, 0)
-        # target_vector = self.camera.position + self.camera.look_direction
         target_vector = Vec3(0, 0, 1)
         camera_rotation = Mat4x4.y_rotation_matrix(self.camera.yaw)
-        look_direction = camera_rotation * target_vector
-        target_vector = self.camera.position + look_direction
+        self.camera.look_direction = camera_rotation * target_vector
+        target_vector = self.camera.position + self.camera.look_direction
 
         camera_matrix = self._point_at_matrix(self.camera.position, target_vector, up_vector)
         camera_view = self._quick_inverse_matrix(camera_matrix)
+
+        # Triangle to be drawn
+        triangles_to_draw = []
 
         # Loop on objects in scene
         for obj in objects:
@@ -333,7 +341,14 @@ class Renderer:
                     # Scale triangle into view
                     tri_scaled = self._scale_triangle(tri_projected)
 
-                    # Draw triangle to screen
-                    self._draw_triangle(tri_scaled, window)
+                    # Store triangle
+                    triangles_to_draw.append(tri_scaled)
+
+        # Sort the triangles using *z-buffer*
+        triangles_to_draw.sort(key=lambda x: (x.p[0].z + x.p[1].z + x.p[2].z) / 3.0, reverse=True)
+
+        for triangle in triangles_to_draw:
+            # Draw triangle to screen
+            self._draw_triangle(triangle, window)
 
         return window
