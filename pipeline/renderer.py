@@ -111,8 +111,6 @@ class Renderer:
         if self.camera.move_direction == "BACKWARDS":
             self.camera.position.z += 8.0 * self.time_diff
 
-        # print(f"Elapsed time: {self.time_diff}")
-
     def _project_triangle(self, tri: Triangle) -> Triangle:
         """
         Project triangle from 3D to 2D using Renderer's projection matrix
@@ -142,7 +140,7 @@ class Renderer:
         # New right
         new_right = new_up // new_forward
 
-        # Construct Dimensioning and transaltion matrix
+        # Construct Dimensioning and translation matrix
         matrix = Mat4x4()
         matrix.m[0] = [new_right.x, new_right.y, new_right.z, 0.0]
         matrix.m[1] = [new_up.x, new_up.y, new_up.z, 0.0]

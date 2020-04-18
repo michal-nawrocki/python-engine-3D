@@ -2,8 +2,10 @@
 Handling of moving a camera
 """
 
-from math_3d.vec3 import Vec3
 from pipeline.camera import Camera
+from helpers.loggers import get_a_logger
+
+_LOGGER = get_a_logger(__name__)
 
 
 class CameraMovement:
@@ -19,7 +21,8 @@ class CameraMovement:
         self.camera = camera
 
     def handle_input(self, event):
-        print(f"Pressed key: {event}")
+        _LOGGER.info(f"Pressed key: {event}")
+
         if event.keysym in self.up_controls:
             self.camera.move_direction = "UP"
 
@@ -39,5 +42,5 @@ class CameraMovement:
             self.camera.move_direction = "BACKWARDS"
 
     def clear_movement(self, event):
-        print(f"Key released: {event}")
+        _LOGGER.info(f"Key released: {event}")
         self.camera.move_direction = None

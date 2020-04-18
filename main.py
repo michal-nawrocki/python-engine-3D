@@ -25,6 +25,7 @@ if __name__ == "__main__":
     time_1 = time.time()
     time_2 = time.time()
     time_diff = 1
+
     # Pack event handler
     camera_movement_handler = CameraMovement(ren.camera)
     top.bind("<KeyPress>", camera_movement_handler.handle_input)
