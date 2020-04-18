@@ -8,7 +8,7 @@ def _super_format():
 
 def _default_format():
     return logging.Formatter(
-        "%(levelname)s %(asctime)s.%(msecs)03d {%(threadName)s} {%(module)s.%(funcName)-18s:%(lineno)s} %(message)s",
+        "%(levelname)s %(asctime)s.%(msecs)06d {%(threadName)s} {%(module)s.%(funcName)s:%(lineno)s} %(message)s",
         "%H:%M:%S"
     )
 

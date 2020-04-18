@@ -5,7 +5,12 @@ from tkinter import (
 import time
 
 from input.CameraMovement import CameraMovement
+from helpers.loggers import get_a_logger
 from pipeline.renderer import Renderer
+
+
+_LOGGER = get_a_logger(__name__)
+
 
 if __name__ == "__main__":
     print("3D engine written in Python3.6")
