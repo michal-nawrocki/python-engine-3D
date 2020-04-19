@@ -1,3 +1,4 @@
+import copy
 from math import sin, cos, tan, pi
 from tkinter import Canvas
 
@@ -9,38 +10,50 @@ from pipeline.camera import Camera
 from pipeline.helpers.color import Color
 from pipeline.helpers.triangle import Triangle
 
+from pipeline.helpers.model_reader import ModelReader
+
 
 def get_objects_for_scene() -> [[Triangle]]:
     # For now return a list with the points of a cube
     objects = []
+    #
+    # cube = [
+    #     # SOUTH
+    #     Triangle(Vec3(0.0, 0.0, 0.0), Vec3(0.0, 1.0, 0.0), Vec3(1.0, 1.0, 0.0)),
+    #     Triangle(Vec3(0.0, 0.0, 0.0), Vec3(1.0, 1.0, 0.0), Vec3(1.0, 0.0, 0.0)),
+    #
+    #     # EAST
+    #     Triangle(Vec3(1.0, 0.0, 0.0), Vec3(1.0, 1.0, 0.0), Vec3(1.0, 1.0, 1.0)),
+    #     Triangle(Vec3(1.0, 0.0, 0.0), Vec3(1.0, 1.0, 1.0), Vec3(1.0, 0.0, 1.0)),
+    #
+    #     # NORTH
+    #     Triangle(Vec3(1.0, 0.0, 1.0), Vec3(1.0, 1.0, 1.0), Vec3(0.0, 1.0, 1.0)),
+    #     Triangle(Vec3(1.0, 0.0, 1.0), Vec3(0.0, 1.0, 1.0), Vec3(0.0, 0.0, 1.0)),
+    #
+    #     # WEST
+    #     Triangle(Vec3(0.0, 0.0, 1.0), Vec3(0.0, 1.0, 1.0), Vec3(0.0, 1.0, 0.0)),
+    #     Triangle(Vec3(0.0, 0.0, 1.0), Vec3(0.0, 1.0, 0.0), Vec3(0.0, 0.0, 0.0)),
+    #
+    #     # TOP
+    #     Triangle(Vec3(0.0, 1.0, 0.0), Vec3(0.0, 1.0, 1.0), Vec3(1.0, 1.0, 1.0)),
+    #     Triangle(Vec3(0.0, 1.0, 0.0), Vec3(1.0, 1.0, 1.0), Vec3(1.0, 1.0, 0.0)),
+    #
+    #     # BOTTOM
+    #     Triangle(Vec3(1.0, 0.0, 1.0), Vec3(0.0, 0.0, 1.0), Vec3(0.0, 0.0, 0.0)),
+    #     Triangle(Vec3(1.0, 0.0, 1.0), Vec3(0.0, 0.0, 0.0), Vec3(1.0, 0.0, 0.0)),
+    # ]
+    #
+    # objects.append(cube)
 
-    cube = [
-        # SOUTH
-        Triangle(Vec3(0.0, 0.0, 0.0), Vec3(0.0, 1.0, 0.0), Vec3(1.0, 1.0, 0.0)),
-        Triangle(Vec3(0.0, 0.0, 0.0), Vec3(1.0, 1.0, 0.0), Vec3(1.0, 0.0, 0.0)),
+    spaceship = ModelReader.read_obj_model(
+        r"C:\Users\Majkeliusz PC\Dropbox\ProgrammingProjects\python-3d\models\ship.obj"
+    )
+    objects.append(spaceship)
 
-        # EAST
-        Triangle(Vec3(1.0, 0.0, 0.0), Vec3(1.0, 1.0, 0.0), Vec3(1.0, 1.0, 1.0)),
-        Triangle(Vec3(1.0, 0.0, 0.0), Vec3(1.0, 1.0, 1.0), Vec3(1.0, 0.0, 1.0)),
-
-        # NORTH
-        Triangle(Vec3(1.0, 0.0, 1.0), Vec3(1.0, 1.0, 1.0), Vec3(0.0, 1.0, 1.0)),
-        Triangle(Vec3(1.0, 0.0, 1.0), Vec3(0.0, 1.0, 1.0), Vec3(0.0, 0.0, 1.0)),
-
-        # WEST
-        Triangle(Vec3(0.0, 0.0, 1.0), Vec3(0.0, 1.0, 1.0), Vec3(0.0, 1.0, 0.0)),
-        Triangle(Vec3(0.0, 0.0, 1.0), Vec3(0.0, 1.0, 0.0), Vec3(0.0, 0.0, 0.0)),
-
-        # TOP
-        Triangle(Vec3(0.0, 1.0, 0.0), Vec3(0.0, 1.0, 1.0), Vec3(1.0, 1.0, 1.0)),
-        Triangle(Vec3(0.0, 1.0, 0.0), Vec3(1.0, 1.0, 1.0), Vec3(1.0, 1.0, 0.0)),
-
-        # BOTTOM
-        Triangle(Vec3(1.0, 0.0, 1.0), Vec3(0.0, 0.0, 1.0), Vec3(0.0, 0.0, 0.0)),
-        Triangle(Vec3(1.0, 0.0, 1.0), Vec3(0.0, 0.0, 0.0), Vec3(1.0, 0.0, 0.0)),
-    ]
-
-    objects.append(cube)
+    # teapot = ModelReader.read_obj_model(
+    #     r"C:\Users\Majkeliusz PC\Dropbox\ProgrammingProjects\python-3d\models\teapot.obj"
+    # )
+    # objects.append(teapot)
 
     return objects
 
@@ -78,7 +91,7 @@ class Renderer:
         self.theta = 0.0
         self.time_diff = 1
 
-        self.camera = Camera(Vec3(0, 0, 0))
+        self.camera = Camera(Vec3(0, 0, -10))
 
         # Set projection matrix
         proj_mat = Mat4x4()
@@ -90,6 +103,9 @@ class Renderer:
         proj_mat.m[3][3] = 0.0
 
         self.projection_matrix = proj_mat
+
+        # Get objects for the scene
+        self.objects = copy.deepcopy(get_objects_for_scene())
 
     def update_camera_position(self):
         if self.camera.move_direction == "UP":
@@ -257,7 +273,7 @@ class Renderer:
         self.update_camera_position()
 
         # Get objects in scene
-        objects = get_objects_for_scene()
+        objects = copy.deepcopy(get_objects_for_scene())
 
         # Angle for rotation
         # self.theta += time_diff * 1.0
@@ -343,12 +359,13 @@ class Renderer:
 
                     # Store triangle
                     triangles_to_draw.append(tri_scaled)
+                    self._draw_triangle(tri_scaled, window)
 
         # Sort the triangles using *z-buffer*
-        triangles_to_draw.sort(key=lambda x: (x.p[0].z + x.p[1].z + x.p[2].z) / 3.0, reverse=True)
-
-        for triangle in triangles_to_draw:
-            # Draw triangle to screen
-            self._draw_triangle(triangle, window)
+        # triangles_to_draw.sort(key=lambda x: (x.p[0].z + x.p[1].z + x.p[2].z) / 3.0, reverse=True)
+        #
+        # for triangle in triangles_to_draw:
+        #     # Draw triangle to screen
+        #     self._draw_triangle(triangle, window)
 
         return window

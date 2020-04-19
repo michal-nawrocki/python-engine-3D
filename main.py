@@ -2,8 +2,6 @@ from tkinter import (
     Canvas,
     Tk,
     NW,
-    W,
-    N,
 )
 import time
 
@@ -45,7 +43,7 @@ if __name__ == "__main__":
         try:
             top.title(f"Python Engine 3D - FPS: {(1 / time_diff):.0f}")
         except ZeroDivisionError:
-            top.title(f"Python Engine 3D - FPS: 0")
+            pass
 
         # Render frame, display it and get update from GUI
         rendered_frame = ren.render_frame(window, time_diff)

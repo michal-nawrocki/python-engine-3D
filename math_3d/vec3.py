@@ -128,8 +128,9 @@ class Vec3:
         """
 
         length = sqrt(self.x * self.x + self.y * self.y + self.z * self.z)
-        self.x /= length
-        self.y /= length
-        self.z /= length
+        if length != 0:
+            self.x /= length
+            self.y /= length
+            self.z /= length
 
         return self
