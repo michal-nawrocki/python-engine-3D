@@ -4,6 +4,7 @@ from tkinter import (
     NW,
 )
 import time
+import math
 
 from input.CameraMovement import CameraMovement
 from helpers.loggers import get_a_logger
@@ -41,25 +42,12 @@ if __name__ == "__main__":
     while True:
         # Set FPS
         try:
-            top.title(f"Python Engine 3D - FPS: {(1 / time_diff):.0f}")
+            top.title(f"Python Engine 3D - FPS: {round(1 / time_diff):.0f}")
         except ZeroDivisionError:
             pass
 
         # Render frame, display it and get update from GUI
         rendered_frame = ren.render_frame(window, time_diff)
-
-        # Add text to it
-
-        # Add debug info to window
-        camera_text = (
-            f"Camera:\n"
-            f" X: {ren.camera.position.x}\n"
-            f" Y: {ren.camera.position.y}\n"
-            f" Z: {ren.camera.position.z}\n"
-            f" Yaw: {ren.camera.yaw}"
-        )
-
-        rendered_frame.create_text(5, 5, anchor=NW, text=camera_text, fill="red")
 
         rendered_frame.update_idletasks()
         rendered_frame.update()

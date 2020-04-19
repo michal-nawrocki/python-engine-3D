@@ -2,6 +2,8 @@
 Handling of moving a camera
 """
 
+import copy
+import platform
 from pipeline.camera import Camera
 from helpers.loggers import get_a_logger
 
@@ -15,10 +17,10 @@ class CameraMovement:
     left_controls = ['a', 'Left']
     right_controls = ['d', 'Right']
 
-    forward_controls = ["8"]
-    backward_controls = ["2"]
-    turn_left_controls = ["4"]
-    turn_right_controls = ["6"]
+    forward_controls = ["8", "z"]
+    backward_controls = ["2", "x"]
+    turn_left_controls = ["4", "q"]
+    turn_right_controls = ["6", "e"]
 
     def __init__(self, camera: Camera):
         self.camera = camera
@@ -50,6 +52,17 @@ class CameraMovement:
         if event.keysym in self.turn_right_controls:
             self.camera.move_direction = "TURN_RIGHT"
 
+        if event.keysym in ["space"]:
+            self.camera.move_direction = None
+
+        # Reset to original value
+        if event.keysym in ["r"]:
+            self.camera.move_direction = None
+            self.camera.yaw = 0
+            self.camera.position = copy.deepcopy(self.camera.origin)
+
     def clear_movement(self, event):
         _LOGGER.info(f"Key released: {event}")
-        self.camera.move_direction = None
+
+        if "Windows" in platform.platform():
+            self.camera.move_direction = None

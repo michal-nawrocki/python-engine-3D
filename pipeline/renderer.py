@@ -1,6 +1,6 @@
 import copy
 from math import sin, cos, tan, pi
-from tkinter import Canvas
+from tkinter import Canvas, NW, SW, NE, SE
 
 from math_3d.mat4x4 import Mat4x4
 from math_3d.vec3 import Vec3
@@ -45,14 +45,10 @@ def get_objects_for_scene() -> [[Triangle]]:
     #
     # objects.append(cube)
 
-    spaceship = ModelReader.read_obj_model(
-        r"C:\Users\Majkeliusz PC\Dropbox\ProgrammingProjects\python-3d\models\ship.obj"
-    )
+    spaceship = ModelReader.read_obj_model(r"models/ship.obj")
     objects.append(spaceship)
 
-    # teapot = ModelReader.read_obj_model(
-    #     r"C:\Users\Majkeliusz PC\Dropbox\ProgrammingProjects\python-3d\models\teapot.obj"
-    # )
+    # teapot = ModelReader.read_obj_model(r"models/teapot.obj")
     # objects.append(teapot)
 
     return objects
@@ -105,7 +101,7 @@ class Renderer:
         self.projection_matrix = proj_mat
 
         # Get objects for the scene
-        self.objects = copy.deepcopy(get_objects_for_scene())
+        self.objects = get_objects_for_scene()
 
     def update_camera_position(self):
         if self.camera.move_direction == "UP":
@@ -273,7 +269,7 @@ class Renderer:
         self.update_camera_position()
 
         # Get objects in scene
-        objects = copy.deepcopy(get_objects_for_scene())
+        objects = copy.deepcopy(self.objects)
 
         # Angle for rotation
         # self.theta += time_diff * 1.0
@@ -359,13 +355,34 @@ class Renderer:
 
                     # Store triangle
                     triangles_to_draw.append(tri_scaled)
-                    self._draw_triangle(tri_scaled, window)
 
         # Sort the triangles using *z-buffer*
-        # triangles_to_draw.sort(key=lambda x: (x.p[0].z + x.p[1].z + x.p[2].z) / 3.0, reverse=True)
-        #
-        # for triangle in triangles_to_draw:
-        #     # Draw triangle to screen
-        #     self._draw_triangle(triangle, window)
+        triangles_to_draw.sort(key=lambda x: (x.p[0].z + x.p[1].z + x.p[2].z) / 3.0, reverse=True)
+
+        # Draw triangles to screen
+        for triangle in triangles_to_draw:
+            self._draw_triangle(triangle, window)
+
+        # Add debug info to window
+        camera_text = (
+            f"Camera:\n"
+            f" X: {self.camera.position.x}\n"
+            f" Y: {self.camera.position.y}\n"
+            f" Z: {self.camera.position.z}\n"
+            f" Yaw: {self.camera.yaw}"
+        )
+
+        triangle_count = 0
+        for obj in objects:
+            triangle_count = triangle_count + len(obj)
+
+        triangle_text = (
+            "Triangles:\n"
+            f" Total: {triangle_count}\n"
+            f" Drawn: {len(triangles_to_draw)}"
+        )
+
+        window.create_text(5, 5, anchor=NW, text=camera_text, fill="red")
+        window.create_text(5, 100, anchor=NW, text=triangle_text, fill="red")
 
         return window
