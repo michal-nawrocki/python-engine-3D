@@ -45,8 +45,11 @@ def get_objects_for_scene() -> [[Triangle]]:
     #
     # objects.append(cube)
 
-    spaceship = ModelReader.read_obj_model(r"models/ship.obj")
-    objects.append(spaceship)
+    axis = ModelReader.read_obj_model(r"models/axis.obj")
+    objects.append(axis)
+
+    # spaceship = ModelReader.read_obj_model(r"models/ship.obj")
+    # objects.append(spaceship)
 
     # teapot = ModelReader.read_obj_model(r"models/teapot.obj")
     # objects.append(teapot)
@@ -84,21 +87,11 @@ class Renderer:
         self.screen_width = screen_width
         self.aspect_ration = float(screen_height / screen_width)
         self.fov_rad = 1.0 / tan(fov * 0.5 / 180.0 * pi)
-        self.theta = 0.0
+        self.theta = pi/4
         self.time_diff = 1
 
         self.camera = Camera(Vec3(0, 0, -10))
-
-        # Set projection matrix
-        proj_mat = Mat4x4()
-        proj_mat.m[0][0] = self.aspect_ration * self.fov_rad
-        proj_mat.m[1][1] = self.fov_rad
-        proj_mat.m[2][2] = far // (far - near)
-        proj_mat.m[3][2] = (-far * near) / (far - near)
-        proj_mat.m[2][3] = 1.0
-        proj_mat.m[3][3] = 0.0
-
-        self.projection_matrix = proj_mat
+        self.projection_matrix = self._make_projection_matrix(far, near)
 
         # Get objects for the scene
         self.objects = get_objects_for_scene()
@@ -129,6 +122,18 @@ class Renderer:
 
         if self.camera.move_direction == "TURN_RIGHT":
             self.camera.yaw += 2.0 * self.time_diff
+
+    def _make_projection_matrix(self, far, near):
+        """ Create matrix for projection with parameters defined in object """
+        proj_mat = Mat4x4()
+        proj_mat.m[0][0] = self.aspect_ration * self.fov_rad
+        proj_mat.m[1][1] = self.fov_rad
+        proj_mat.m[2][2] = far // (far - near)
+        proj_mat.m[3][2] = (-far * near) / (far - near)
+        proj_mat.m[2][3] = 1.0
+        proj_mat.m[3][3] = 0.0
+
+        return proj_mat
 
     def _project_triangle(self, tri: Triangle) -> Triangle:
         """
@@ -227,7 +232,10 @@ class Renderer:
         points = [tri.p[0].x, tri.p[0].y, tri.p[1].x, tri.p[1].y, tri.p[2].x, tri.p[2].y]
         shade_of_triangle = Renderer._calculate_shade_of_triangle(tri)
 
-        window.create_polygon(points, outline="red", fill=shade_of_triangle.to_hex())
+        # With wireframe
+        # window.create_polygon(points, outline="red", fill=shade_of_triangle.to_hex())
+
+        window.create_polygon(points, fill=shade_of_triangle.to_hex())
 
     def _scale_triangle(self, tri: Triangle) -> Triangle:
         """
@@ -274,25 +282,18 @@ class Renderer:
         # Angle for rotation
         # self.theta += time_diff * 1.0
 
-        # Setup Z-Rotation matrix
-        z_rotate = Mat4x4()
-        z_rotate.m[0][0] = cos(self.theta)
-        z_rotate.m[0][1] = sin(self.theta)
-        z_rotate.m[1][0] = -sin(self.theta)
-        z_rotate.m[1][1] = cos(self.theta)
-        z_rotate.m[2][2] = 1
-        z_rotate.m[3][3] = 1
+        # Setup Z and X rotation matrices
+        z_rotate = Mat4x4.z_rotation_matrix(3*pi)
+        x_rotate = Mat4x4.x_rotation_matrix(2*pi)
 
-        # Setup X-Rotation matrix
-        x_rotate = Mat4x4()
-        x_rotate.m[0][0] = 1
-        x_rotate.m[1][1] = cos(self.theta * 0.5)
-        x_rotate.m[1][2] = sin(self.theta * 0.5)
-        x_rotate.m[2][1] = -sin(self.theta * 0.5)
-        x_rotate.m[2][2] = cos(self.theta * 0.5)
-        x_rotate.m[3][3] = 1
+        # Setup Translation matrix
+        translation_matrix = Mat4x4.translation_matrix(0.0, 0.0, 0.0)
 
-        # Make view matrix for camera
+        # Setup World matrix
+        world_matrix = Mat4x4.multiply_matrix(z_rotate, x_rotate)
+        world_matrix = Mat4x4.multiply_matrix(world_matrix, translation_matrix)
+
+        # Make point_at matrix
         up_vector = Vec3(0, 1, 0)
         target_vector = Vec3(0, 0, 1)
         camera_rotation = Mat4x4.y_rotation_matrix(self.camera.yaw)
@@ -309,43 +310,30 @@ class Renderer:
         for obj in objects:
             # Loop on triangles in an object
             for tri in obj:
-                # Rotate about Z-axis
-                tri_rotated_z = tri
-                tri_rotated_z.p[0] = z_rotate * tri.p[0]
-                tri_rotated_z.p[1] = z_rotate * tri.p[1]
-                tri_rotated_z.p[2] = z_rotate * tri.p[2]
 
-                # Rotate about X-axis
-                tri_rotated_x = tri_rotated_z
-                tri_rotated_x.p[0] = x_rotate * tri_rotated_x.p[0]
-                tri_rotated_x.p[1] = x_rotate * tri_rotated_x.p[1]
-                tri_rotated_x.p[2] = x_rotate * tri_rotated_x.p[2]
-
-                # Offset into Z-direction
-                tri_translated = tri_rotated_x
-                tri_translated.p[0].z += 3.0
-                tri_translated.p[1].z += 3.0
-                tri_translated.p[2].z += 3.0
+                # Perform Translate-Rotate-Scale matrix multiplication on triangle
+                tri_transformed = tri
+                tri_transformed.p[0] = world_matrix * tri.p[0]
+                tri_transformed.p[1] = world_matrix * tri.p[1]
+                tri_transformed.p[2] = world_matrix * tri.p[2]
 
                 # Get normal of triangle
-                line_a = tri_translated.p[1] - tri_translated.p[0]
-                line_b = tri_translated.p[2] - tri_translated.p[0]
+                line_a = tri_transformed.p[1] - tri_transformed.p[0]
+                line_b = tri_transformed.p[2] - tri_transformed.p[0]
                 normal = line_a // line_b
-
-                # Normalize the normal
                 normal.normalize()
 
-                if normal * (tri_translated.p[0] - self.camera.position) < 0.0:
+                if normal * (tri_transformed.p[0] - self.camera.position) < 0.0:
                     # Illuminate triangle
                     light_direction = Vec3(0.0, 0.0, -1.0).normalize()  # towards the camera
                     dot_product = max(0.1, light_direction * normal)
-                    tri_translated.angle_to_light = dot_product
+                    tri_transformed.angle_to_light = dot_product
 
                     # Convert World Space into View Space
-                    tri_viewed = tri_translated
-                    tri_viewed.p[0] = camera_view * tri_translated.p[0]
-                    tri_viewed.p[1] = camera_view * tri_translated.p[1]
-                    tri_viewed.p[2] = camera_view * tri_translated.p[2]
+                    tri_viewed = tri_transformed
+                    tri_viewed.p[0] = camera_view * tri_transformed.p[0]
+                    tri_viewed.p[1] = camera_view * tri_transformed.p[1]
+                    tri_viewed.p[2] = camera_view * tri_transformed.p[2]
 
                     # Project triangles
                     tri_projected = self._project_triangle(tri_viewed)

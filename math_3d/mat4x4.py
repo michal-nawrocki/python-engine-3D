@@ -2,6 +2,10 @@ from typing import TypeVar, Union
 from math import cos, sin
 
 from math_3d.vec3 import Vec3
+from helpers.loggers import get_a_logger
+
+
+_LOGGER = get_a_logger(__name__)
 
 
 class Mat4x4:
@@ -39,6 +43,7 @@ class Mat4x4:
 
             return Vec3(x, y, z)
         elif isinstance(other, Mat4x4):
+            _LOGGER.warning("DEPRECATED METHOD. DON'T USE IT")
             return Mat4x4.multiply_matrix(self, other)
 
     @staticmethod
