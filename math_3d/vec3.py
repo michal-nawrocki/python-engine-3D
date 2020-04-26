@@ -134,3 +134,33 @@ class Vec3:
             self.z /= length
 
         return self
+
+    @staticmethod
+    def intersect_plane(
+        plane_point: Vec3,
+        plane_normal: Vec3,
+        line_start: Vec3,
+        line_end: Vec3
+    ):
+        plane_normal.normalize()
+
+        plane_normal_dot = -(plane_normal * plane_point)
+        start_plane_dot = line_start * plane_normal
+        end_plane_dot = line_end * plane_normal
+        t = (-plane_normal_dot - start_plane_dot) / (end_plane_dot - start_plane_dot)
+        line_start_end = line_end - line_start
+        line_intersect = line_start_end * t
+
+        return line_start + line_intersect
+
+    @staticmethod
+    def point_to_plane_distance(
+        point: Vec3,
+        plane_point: Vec3,
+        plane_normal: Vec3
+    ):
+        point = point.normalize()
+
+        return plane_normal.x * point.x + plane_normal.y * point.y \
+            + plane_normal.z * point.z - (plane_normal * plane_point)
+

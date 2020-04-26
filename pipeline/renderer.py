@@ -216,7 +216,7 @@ class Renderer:
 
         # Change illumination of triangle based on angle
         color_hls_form = base_color.to_hls()
-        color_hls_form[1] *= dot_value
+        # color_hls_form[1] *= dot_value
 
         shade_of_triangle = Color(Color.HLS, *color_hls_form)
 
@@ -233,9 +233,9 @@ class Renderer:
         shade_of_triangle = Renderer._calculate_shade_of_triangle(tri)
 
         # With wireframe
-        # window.create_polygon(points, outline="red", fill=shade_of_triangle.to_hex())
+        window.create_polygon(points, outline="red", fill=shade_of_triangle.to_hex())
 
-        window.create_polygon(points, fill=shade_of_triangle.to_hex())
+        # window.create_polygon(points, fill=shade_of_triangle.to_hex())
 
     def _scale_triangle(self, tri: Triangle) -> Triangle:
         """
@@ -283,8 +283,8 @@ class Renderer:
         # self.theta += time_diff * 1.0
 
         # Setup Z and X rotation matrices
-        z_rotate = Mat4x4.z_rotation_matrix(3*pi)
-        x_rotate = Mat4x4.x_rotation_matrix(2*pi)
+        z_rotate = Mat4x4.z_rotation_matrix(0)
+        x_rotate = Mat4x4.x_rotation_matrix(0)
 
         # Setup Translation matrix
         translation_matrix = Mat4x4.translation_matrix(0.0, 0.0, 0.0)
@@ -304,6 +304,7 @@ class Renderer:
         camera_view = self._quick_inverse_matrix(camera_matrix)
 
         # Triangle to be drawn
+        triangles_to_raster = []
         triangles_to_draw = []
 
         # Loop on objects in scene
@@ -323,7 +324,9 @@ class Renderer:
                 normal = line_a // line_b
                 normal.normalize()
 
-                if normal * (tri_transformed.p[0] - self.camera.position) < 0.0:
+                camera_ray = tri_transformed.p[0] - self.camera.position
+
+                if normal * camera_ray <= 0.0:
                     # Illuminate triangle
                     light_direction = Vec3(0.0, 0.0, -1.0).normalize()  # towards the camera
                     dot_product = max(0.1, light_direction * normal)
@@ -335,21 +338,50 @@ class Renderer:
                     tri_viewed.p[1] = camera_view * tri_transformed.p[1]
                     tri_viewed.p[2] = camera_view * tri_transformed.p[2]
 
-                    # Project triangles
-                    tri_projected = self._project_triangle(tri_viewed)
+                    # Check if triangle needs to be clipped
+                    tris_clipped = Triangle.clip_against_plane(Vec3(0.0, 0.0, 0.1), Vec3(0.0, 0.0, 1.0), tri_viewed)
 
-                    # Scale triangle into view
-                    tri_scaled = self._scale_triangle(tri_projected)
+                    for tri_clipped in tris_clipped:
+                        # Project triangles
+                        tri_projected = self._project_triangle(tri_clipped)
 
-                    # Store triangle
-                    triangles_to_draw.append(tri_scaled)
+                        # Scale triangle into view
+                        tri_scaled = self._scale_triangle(tri_projected)
+
+                        # Store triangle
+                        triangles_to_raster.append(tri_scaled)
 
         # Sort the triangles using *z-buffer*
-        triangles_to_draw.sort(key=lambda x: (x.p[0].z + x.p[1].z + x.p[2].z) / 3.0, reverse=True)
+        triangles_to_raster.sort(key=lambda x: (x.p[0].z + x.p[1].z + x.p[2].z) / 3.0, reverse=True)
 
-        # Draw triangles to screen
-        for triangle in triangles_to_draw:
-            self._draw_triangle(triangle, window)
+        # Clip triangle against screen edges
+        triangles_to_clip = []
+        for triangle in triangles_to_raster:
+            new_triangles = 1
+            triangles_to_clip.append(triangle)
+
+            for p in range(0, 4):
+                tris_to_add = []
+
+                while new_triangles > 0:
+                    test = triangles_to_clip.pop(0)
+                    new_triangles -= 1
+
+                    if p == 0:
+                        tris_to_add = Triangle.clip_against_plane(Vec3(0, 0, 0,), Vec3(0, 1, 0), test)
+                    elif p == 1:
+                        tris_to_add = Triangle.clip_against_plane(Vec3(0, self.screen_height - 1, 0,), Vec3(0, -1, 0), test)
+                    elif p == 2:
+                        tris_to_add = Triangle.clip_against_plane(Vec3(0, 0, 0,), Vec3(1, 0, 0), test)
+                    elif p == 3:
+                        tris_to_add = Triangle.clip_against_plane(Vec3(self.screen_width - 1, 0, 0,), Vec3(-1, 0, 0), test)
+
+                    triangles_to_clip += tris_to_add
+                new_triangles = len(triangles_to_clip)
+
+            # Draw triangles to screen
+            for triangle in triangles_to_clip:
+                self._draw_triangle(triangle, window)
 
         # Add debug info to window
         camera_text = (
