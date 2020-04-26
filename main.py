@@ -43,7 +43,7 @@ if __name__ == "__main__":
         # Set FPS
         try:
             top.title(f"Python Engine 3D - FPS: {round(1 / time_diff):.0f}")
-        except ZeroDivisionError:
+        except Exception:
             pass
 
         # Render frame, display it and get update from GUI
